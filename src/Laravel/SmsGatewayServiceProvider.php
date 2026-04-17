@@ -2,6 +2,7 @@
 
 namespace SmsGateway\Laravel;
 
+use SmsGateway\Drivers\AfrikSmsDriver;
 use SmsGateway\Drivers\FasterMessageDriver;
 use SmsGateway\SmsGateway;
 use Illuminate\Notifications\ChannelManager;
@@ -58,6 +59,15 @@ class SmsGatewayServiceProvider extends ServiceProvider
                 apiUrl: $c['api_url'] ?? '',
                 username: $c['username'] ?? '',
                 password: $c['password'] ?? '',
+            ));
+        }
+
+        if (isset($drivers['afriksms'])) {
+            $c = $drivers['afriksms'];
+            $gateway->registerDriver('afriksms', new AfrikSmsDriver(
+                clientId: $c['client_id'] ?? '',
+                apiKey: $c['api_key'] ?? '',
+                senderId: $c['sender_id'] ?? '',
             ));
         }
     }

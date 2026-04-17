@@ -43,6 +43,12 @@ return [
             'password' => env('FASTER_MESSAGE_PASSWORD', ''),
         ],
 
+        'afriksms' => [
+            'client_id' => env('AFRIKSMS_CLIENT_ID', ''),
+            'api_key' => env('AFRIKSMS_API_KEY', ''),
+            'sender_id' => env('AFRIKSMS_SENDER_ID', ''),
+        ],
+
     ],
 
 ];

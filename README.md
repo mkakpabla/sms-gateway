@@ -16,7 +16,7 @@ Framework-agnostic SMS gateway with multi-provider fallback support for PHP 8.3+
 | Provider | Driver | Status |
 |---|---|---|
 | FasterMessage | `faster-message` | ✅ Available |
-| AfrikSMS | `afrik-sms` | Planned |
+| AfrikSMS | `afriksms` | ✅ Available |
 | Twilio | `twilio` | Planned |
 
 ## Installation
@@ -38,10 +38,16 @@ Add your credentials to `.env`:
 ```env
 SMS_DRIVER=faster-message
 
+# FasterMessage
 FASTER_MESSAGE_FROM=MyApp
 FASTER_MESSAGE_API_URL=https://api.fastermessage.com
 FASTER_MESSAGE_USERNAME=your-username
 FASTER_MESSAGE_PASSWORD=your-password
+
+# AfrikSMS
+AFRIKSMS_CLIENT_ID=your-client-id
+AFRIKSMS_API_KEY=your-api-key
+AFRIKSMS_SENDER_ID=AFRIKSMS
 ```
 
 ## Usage
@@ -65,6 +71,26 @@ $gateway->registerDriver('faster-message', new FasterMessageDriver(
 $gateway->setDefaultDriver('faster-message');
 
 $gateway->send('+22890001234', SmsMessage::create('Hello!'));
+```
+
+#### AfrikSMS
+
+```php
+use SmsGateway\SmsGateway;
+use SmsGateway\SmsMessage;
+use SmsGateway\Drivers\AfrikSmsDriver;
+
+$gateway = new SmsGateway();
+
+$gateway->registerDriver('afriksms', new AfrikSmsDriver(
+    clientId: 'your-client-id',
+    apiKey: 'your-api-key',
+    senderId: 'AFRIKSMS',
+));
+
+$gateway->setDefaultDriver('afriksms');
+
+$gateway->send('22890001234', SmsMessage::create('Hello!'));
 ```
 
 ### With fallback
