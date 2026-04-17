@@ -11,6 +11,14 @@ Framework-agnostic SMS gateway with multi-provider fallback support for PHP 8.3+
 - **Laravel integration** — service provider with auto-discovery, notification channel, and publishable config
 - **Extensible** — implement `SmsDriverInterface` to add your own providers
 
+## Supported Providers
+
+| Provider | Driver | Status |
+|---|---|---|
+| FasterMessage | `faster-message` | ✅ Available |
+| AfrikSMS | `afrik-sms` | Planned |
+| Twilio | `twilio` | Planned |
+
 ## Installation
 
 ```bash
@@ -150,6 +158,10 @@ composer phpmd     # Mess detector
 composer phpcs     # Code style
 composer quality   # Run all checks
 ```
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 
