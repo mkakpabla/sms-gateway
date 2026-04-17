@@ -20,7 +20,10 @@ class AfrikSmsDriver implements SmsDriverInterface
         private readonly string $senderId,
         ?Client $client = null,
     ) {
-        $this->client = $client ?? new Client();
+        $this->client = $client ?? new Client([
+            'timeout' => 10.0,
+            'connect_timeout' => 5.0,
+        ]);
     }
 
     public function send(string $to, SmsMessage $message): void
