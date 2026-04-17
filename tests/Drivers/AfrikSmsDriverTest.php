@@ -62,7 +62,7 @@ class AfrikSmsDriverTest extends TestCase
         $this->assertSame('22890909090', $query['MobileNumbers']);
     }
 
-    public function testItUsesMessageFromOverDefaultSenderId(): void
+    public function testItUsesMessageFromOverridesDefaultSenderId(): void
     {
         $mock = new MockHandler([
             new Response(200, [], json_encode(['code' => 100, 'message' => 'Success operation'])),
