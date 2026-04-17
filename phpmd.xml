@@ -32,7 +32,13 @@
     </rule>
     <rule ref="rulesets/naming.xml">
         <exclude name="ShortVariable" />
+        <exclude name="ShortMethodName" />
         <exclude name="LongVariable" />
+    </rule>
+    <rule ref="rulesets/naming.xml/ShortMethodName">
+        <properties>
+            <property name="minimum" value="2" />
+        </properties>
     </rule>
     <rule ref="rulesets/naming.xml/LongVariable">
         <properties>

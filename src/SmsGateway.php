@@ -2,6 +2,8 @@
 
 namespace SmsGateway;
 
+use InvalidArgumentException;
+use RuntimeException;
 use SmsGateway\Contracts\SmsDriverInterface;
 use SmsGateway\Exceptions\CouldNotSendNotification;
 
@@ -55,7 +57,7 @@ class SmsGateway
     public function getDriver(string $name): SmsDriverInterface
     {
         if (! isset($this->drivers[$name])) {
-            throw new \InvalidArgumentException("SMS driver [{$name}] is not registered.");
+            throw new InvalidArgumentException("SMS driver [{$name}] is not registered.");
         }
 
         return $this->drivers[$name];
@@ -71,7 +73,7 @@ class SmsGateway
         $driverName = $this->defaultDriver ?? array_key_first($this->drivers);
 
         if ($driverName === null) {
-            throw new \RuntimeException('No SMS driver registered.');
+            throw new RuntimeException('No SMS driver registered.');
         }
 
         $this->getDriver($driverName)->send($to, $message);
