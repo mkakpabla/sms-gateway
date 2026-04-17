@@ -50,6 +50,9 @@ AFRIKSMS_API_KEY=your-api-key
 AFRIKSMS_SENDER_ID=AFRIKSMS
 ```
 
+> [!WARNING]
+> AfrikSMS expects `ClientId` and `ApiKey` in query parameters for this endpoint. Query strings can be captured by access logs, proxies, and APM tooling. Use HTTPS end-to-end and configure log redaction for these values in your infrastructure.
+
 ## Usage
 
 ### Standalone
