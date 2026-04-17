@@ -4,6 +4,8 @@ namespace SmsGateway\Laravel;
 
 use SmsGateway\Drivers\FasterMessageDriver;
 use SmsGateway\SmsGateway;
+use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
 
 class SmsGatewayServiceProvider extends ServiceProvider
@@ -36,6 +38,12 @@ class SmsGatewayServiceProvider extends ServiceProvider
                 __DIR__ . '/../../config/sms-gateway.php' => config_path('sms-gateway.php'),
             ], 'sms-gateway-config');
         }
+
+        Notification::resolved(function (ChannelManager $service) {
+            $service->extend('sms-gateway', function ($app) {
+                return $app->make(SmsChannel::class);
+            });
+        });
     }
 
     /**

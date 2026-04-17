@@ -78,14 +78,13 @@ Implement the `HasSmsNotification` contract on your notification:
 ```php
 use Illuminate\Notifications\Notification;
 use SmsGateway\Contracts\HasSmsNotification;
-use SmsGateway\Laravel\SmsChannel;
 use SmsGateway\SmsMessage;
 
 class OrderShipped extends Notification implements HasSmsNotification
 {
     public function via($notifiable): array
     {
-        return [SmsChannel::class];
+        return ['sms-gateway'];
     }
 
     public function toSms(object $notifiable): SmsMessage
