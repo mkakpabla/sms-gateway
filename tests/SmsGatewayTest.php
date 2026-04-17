@@ -7,17 +7,14 @@ use SmsGateway\Exceptions\CouldNotSendNotification;
 use SmsGateway\SmsGateway;
 use SmsGateway\SmsMessage;
 use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class SmsGatewayTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
+    use MockeryPHPUnitIntegration;
 
-    public function test_it_sends_via_default_driver(): void
+    public function testItSendsViaDefaultDriver(): void
     {
         $driver = Mockery::mock(SmsDriverInterface::class);
         $driver->shouldReceive('send')
@@ -31,7 +28,7 @@ class SmsGatewayTest extends TestCase
         $gateway->send('+22890001234', SmsMessage::create('Hello'));
     }
 
-    public function test_it_uses_first_registered_driver_if_no_default(): void
+    public function testItUsesFirstRegisteredDriverIfNoDefault(): void
     {
         $driver = Mockery::mock(SmsDriverInterface::class);
         $driver->shouldReceive('send')->once();
@@ -42,7 +39,7 @@ class SmsGatewayTest extends TestCase
         $gateway->send('+22890001234', SmsMessage::create('Test'));
     }
 
-    public function test_it_throws_when_no_driver_registered(): void
+    public function testItThrowsWhenNoDriverRegistered(): void
     {
         $gateway = new SmsGateway();
 
@@ -52,7 +49,7 @@ class SmsGatewayTest extends TestCase
         $gateway->send('+22890001234', SmsMessage::create('Test'));
     }
 
-    public function test_it_throws_when_driver_not_found(): void
+    public function testItThrowsWhenDriverNotFound(): void
     {
         $gateway = new SmsGateway();
 
@@ -62,7 +59,7 @@ class SmsGatewayTest extends TestCase
         $gateway->getDriver('unknown');
     }
 
-    public function test_it_falls_back_to_next_driver_on_failure(): void
+    public function testItFallsBackToNextDriverOnFailure(): void
     {
         $failingDriver = Mockery::mock(SmsDriverInterface::class);
         $failingDriver->shouldReceive('send')
@@ -80,7 +77,7 @@ class SmsGatewayTest extends TestCase
         $gateway->sendWithFallback('+22890001234', SmsMessage::create('Test fallback'));
     }
 
-    public function test_it_throws_when_all_drivers_fail(): void
+    public function testItThrowsWhenAllDriversFail(): void
     {
         $failingA = Mockery::mock(SmsDriverInterface::class);
         $failingA->shouldReceive('send')
@@ -103,7 +100,7 @@ class SmsGatewayTest extends TestCase
         $gateway->sendWithFallback('+22890001234', SmsMessage::create('Test'));
     }
 
-    public function test_send_with_fallback_uses_default_when_no_fallback_order(): void
+    public function testSendWithFallbackUsesDefaultWhenNoFallbackOrder(): void
     {
         $driver = Mockery::mock(SmsDriverInterface::class);
         $driver->shouldReceive('send')->once();

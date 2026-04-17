@@ -8,22 +8,21 @@ use SmsGateway\SmsGateway;
 use SmsGateway\SmsMessage;
 use Illuminate\Notifications\Notification;
 use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class SmsChannelTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
+    use MockeryPHPUnitIntegration;
 
-    public function test_it_can_send_a_notification(): void
+    public function testItCanSendANotification(): void
     {
         $gateway = Mockery::mock(SmsGateway::class);
         $gateway->shouldReceive('sendWithFallback')
             ->once()
-            ->withArgs(fn (string $to, SmsMessage $msg) => $to === '+22890001234' && $msg->getContent() === 'Test message');
+            ->withArgs(
+                fn (string $to, SmsMessage $msg) => $to === '+22890001234' && $msg->getContent() === 'Test message'
+            );
 
         $channel = new SmsChannel($gateway);
 
@@ -46,7 +45,7 @@ class SmsChannelTest extends TestCase
         $channel->send($notifiable, $notification);
     }
 
-    public function test_it_skips_if_no_recipient(): void
+    public function testItSkipsIfNoRecipient(): void
     {
         $gateway = Mockery::mock(SmsGateway::class);
         $gateway->shouldNotReceive('sendWithFallback');
@@ -72,7 +71,7 @@ class SmsChannelTest extends TestCase
         $channel->send($notifiable, $notification);
     }
 
-    public function test_it_skips_if_notification_does_not_implement_interface(): void
+    public function testItSkipsIfNotificationDoesNotImplementInterface(): void
     {
         $gateway = Mockery::mock(SmsGateway::class);
         $gateway->shouldNotReceive('sendWithFallback');
@@ -87,7 +86,8 @@ class SmsChannelTest extends TestCase
             }
         };
 
-        $notification = new class extends Notification {};
+        $notification = new class extends Notification {
+        };
 
         $channel->send($notifiable, $notification);
     }

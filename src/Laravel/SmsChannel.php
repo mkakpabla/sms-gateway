@@ -9,7 +9,9 @@ use Illuminate\Notifications\Notification;
 
 class SmsChannel
 {
-    public function __construct(private readonly SmsGateway $gateway) {}
+    public function __construct(private readonly SmsGateway $gateway)
+    {
+    }
 
     /**
      * Send the given notification.

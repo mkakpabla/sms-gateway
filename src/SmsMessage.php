@@ -12,7 +12,7 @@ class SmsMessage
 
     public static function create(string $content = ''): self
     {
-        return (new self)->content($content);
+        return (new self())->content($content);
     }
 
     public function content(string $content): self
