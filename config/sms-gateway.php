@@ -43,6 +43,15 @@ return [
             'password' => env('FASTER_MESSAGE_PASSWORD', ''),
         ],
 
+        'afriksms' => [
+            // AfrikSMS requires ClientId/ApiKey in query params for the send endpoint.
+            // Use HTTPS and configure infrastructure log redaction for these values.
+            'client_id' => env('AFRIKSMS_CLIENT_ID', ''),
+            'api_key' => env('AFRIKSMS_API_KEY', ''),
+            'sender_id' => env('AFRIKSMS_SENDER_ID', ''),
+            'api_url' => env('AFRIKSMS_API_URL', 'https://api.afriksms.com/api/web/web_v1'),
+        ],
+
     ],
 
 ];
