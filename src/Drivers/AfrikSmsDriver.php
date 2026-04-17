@@ -10,7 +10,7 @@ use SmsGateway\SmsMessage;
 
 class AfrikSmsDriver implements SmsDriverInterface
 {
-    private const ENDPOINT = 'https://api.afriksms.com/api/web/web_v1/outbounds/send';
+    private const SEND_SMS = '%s/outbounds/send';
 
     private Client $client;
 
@@ -18,6 +18,7 @@ class AfrikSmsDriver implements SmsDriverInterface
         private readonly string $clientId,
         private readonly string $apiKey,
         private readonly string $senderId,
+        private readonly string $apiUrl = 'https://api.afriksms.com/api/web/web_v1',
         ?Client $client = null,
     ) {
         $this->client = $client ?? new Client([
@@ -28,8 +29,10 @@ class AfrikSmsDriver implements SmsDriverInterface
 
     public function send(string $to, SmsMessage $message): void
     {
+        $url = sprintf(self::SEND_SMS, $this->apiUrl);
+
         try {
-            $response = $this->client->post(self::ENDPOINT, [
+            $response = $this->client->post($url, [
                 'query' => [
                     'ClientId' => $this->clientId,
                     'ApiKey' => $this->apiKey,

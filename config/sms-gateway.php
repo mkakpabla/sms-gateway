@@ -47,6 +47,7 @@ return [
             'client_id' => env('AFRIKSMS_CLIENT_ID', ''),
             'api_key' => env('AFRIKSMS_API_KEY', ''),
             'sender_id' => env('AFRIKSMS_SENDER_ID', ''),
+            'api_url' => env('AFRIKSMS_API_URL', 'https://api.afriksms.com/api/web/web_v1'),
         ],
 
     ],

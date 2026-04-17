@@ -52,7 +52,7 @@ class AfrikSmsDriverTest extends TestCase
 
         $request = $this->history[0]['request'];
         $this->assertSame('POST', $request->getMethod());
-        $this->assertStringContainsString('api.afriksms.com', (string) $request->getUri());
+        $this->assertStringContainsString('/outbounds/send', (string) $request->getUri());
 
         parse_str($request->getUri()->getQuery(), $query);
         $this->assertSame('test-client-id', $query['ClientId']);
