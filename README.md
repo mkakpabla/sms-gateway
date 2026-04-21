@@ -17,6 +17,7 @@ Framework-agnostic SMS gateway with multi-provider fallback support for PHP 8.3+
 |---|---|---|
 | FasterMessage | `faster-message` | ✅ Available |
 | AfrikSMS | `afriksms` | ✅ Available |
+| NATYABIP BulkSMS | `natyabip` | ✅ Available |
 | Twilio | `twilio` | Planned |
 
 ## Installation
@@ -48,6 +49,12 @@ FASTER_MESSAGE_PASSWORD=your-password
 AFRIKSMS_CLIENT_ID=your-client-id
 AFRIKSMS_API_KEY=your-api-key
 AFRIKSMS_SENDER_ID=AFRIKSMS
+
+# NATYABIP BulkSMS
+NATYABIP_USERNAME=your-username
+NATYABIP_PASSWORD=your-password
+NATYABIP_FROM=EASYSERVICE
+NATYABIP_API_URL=https://api.natyabip.com/smsapiprod_web/FR/api.awp
 ```
 
 > [!WARNING]
@@ -95,6 +102,29 @@ $gateway->setDefaultDriver('afriksms');
 
 $gateway->send('22890001234', SmsMessage::create('Hello!'));
 ```
+
+#### NATYABIP BulkSMS
+
+```php
+use SmsGateway\SmsGateway;
+use SmsGateway\SmsMessage;
+use SmsGateway\Drivers\NatyabipDriver;
+
+$gateway = new SmsGateway();
+
+$gateway->registerDriver('natyabip', new NatyabipDriver(
+    apiUrl: 'https://your-natyabip-api-url',
+    username: 'your-username',
+    password: 'your-password',
+    from: 'EASYSERVICE',
+));
+
+$gateway->setDefaultDriver('natyabip');
+
+$gateway->send('22890001234', SmsMessage::create('Hello!'));
+```
+
+The NATYABIP integration uses the REST POST variant with HTTP Basic auth and a JSON payload. The full endpoint remains configurable through `NATYABIP_API_URL` because the provider documentation shows inconsistent path variants.
 
 ### With fallback
 

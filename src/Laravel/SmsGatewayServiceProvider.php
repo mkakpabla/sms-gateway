@@ -4,6 +4,7 @@ namespace SmsGateway\Laravel;
 
 use SmsGateway\Drivers\AfrikSmsDriver;
 use SmsGateway\Drivers\FasterMessageDriver;
+use SmsGateway\Drivers\NatyabipDriver;
 use SmsGateway\SmsGateway;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
@@ -68,6 +69,16 @@ class SmsGatewayServiceProvider extends ServiceProvider
                 clientId: $config['client_id'] ?? '',
                 apiKey: $config['api_key'] ?? '',
                 senderId: $config['sender_id'] ?? '',
+                apiUrl: $config['api_url'] ?? '',
+            ));
+        }
+
+        if (isset($drivers['natyabip'])) {
+            $config = $drivers['natyabip'];
+            $gateway->registerDriver('natyabip', new NatyabipDriver(
+                username: $config['username'] ?? '',
+                password: $config['password'] ?? '',
+                from: $config['from'] ?? '',
                 apiUrl: $config['api_url'] ?? '',
             ));
         }

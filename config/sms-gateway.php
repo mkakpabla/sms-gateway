@@ -23,6 +23,8 @@ return [
     */
     'fallback' => [
         'faster-message',
+        'afriksms',
+        'natyabip'
     ],
 
     /*
@@ -50,6 +52,13 @@ return [
             'api_key' => env('AFRIKSMS_API_KEY', ''),
             'sender_id' => env('AFRIKSMS_SENDER_ID', ''),
             'api_url' => env('AFRIKSMS_API_URL', 'https://api.afriksms.com/api/web/web_v1'),
+        ],
+
+        'natyabip' => [
+            'username' => env('NATYABIP_USERNAME', ''),
+            'password' => env('NATYABIP_PASSWORD', ''),
+            'from' => env('NATYABIP_FROM', ''),
+            'api_url' => env('NATYABIP_API_URL', 'https://api.natyabip.com/smsapiprod_web/FR/api.awp'),
         ],
 
     ],
