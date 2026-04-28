@@ -17,7 +17,7 @@ Framework-agnostic SMS gateway with multi-provider fallback support for PHP 8.3+
 |---|---|---|
 | FasterMessage | `faster-message` | ✅ Available |
 | AfrikSMS | `afriksms` | ✅ Available |
-| Twilio | `twilio` | Planned |
+| NATYABIP | `natyabip` | ✅ Available |
 
 ## Installation
 
@@ -48,10 +48,13 @@ FASTER_MESSAGE_PASSWORD=your-password
 AFRIKSMS_CLIENT_ID=your-client-id
 AFRIKSMS_API_KEY=your-api-key
 AFRIKSMS_SENDER_ID=AFRIKSMS
-```
 
-> [!WARNING]
-> AfrikSMS expects `ClientId` and `ApiKey` in query parameters for this endpoint. Query strings can be captured by access logs, proxies, and APM tooling. Use HTTPS end-to-end and configure log redaction for these values in your infrastructure.
+# NATYABIP
+NATYABIP_USERNAME=your-username
+NATYABIP_PASSWORD=your-password
+NATYABIP_FROM=EASYSERVICE
+NATYABIP_API_URL=https://api.natyabip.com/smsapiprod_web/FR/api.awp
+```
 
 ## Usage
 
@@ -92,6 +95,27 @@ $gateway->registerDriver('afriksms', new AfrikSmsDriver(
 ));
 
 $gateway->setDefaultDriver('afriksms');
+
+$gateway->send('22890001234', SmsMessage::create('Hello!'));
+```
+
+#### NATYABIP
+
+```php
+use SmsGateway\SmsGateway;
+use SmsGateway\SmsMessage;
+use SmsGateway\Drivers\NatyabipDriver;
+
+$gateway = new SmsGateway();
+
+$gateway->registerDriver('natyabip', new NatyabipDriver(
+    apiUrl: 'https://your-natyabip-api-url',
+    username: 'your-username',
+    password: 'your-password',
+    from: 'EASYSERVICE',
+));
+
+$gateway->setDefaultDriver('natyabip');
 
 $gateway->send('22890001234', SmsMessage::create('Hello!'));
 ```
