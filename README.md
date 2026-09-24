@@ -10,6 +10,7 @@ Framework-agnostic SMS gateway with multi-provider fallback support for PHP 8.3+
 - **Automatic fallback** — if one provider fails, the next one in the chain is used
 - **Laravel integration** — service provider with auto-discovery, notification channel, and publishable config
 - **Extensible** — implement `SmsDriverInterface` to add your own providers
+- **WhatsApp** — provider-agnostic `whatsapp` notification channel (templates, media, fallback); Twilio built in via its official SDK, any other provider pluggable
 
 ## Supported Providers
 
@@ -18,6 +19,10 @@ Framework-agnostic SMS gateway with multi-provider fallback support for PHP 8.3+
 | FasterMessage | `faster-message` | ✅ Available |
 | AfrikSMS | `afriksms` | ✅ Available |
 | NATYABIP | `natyabip` | ✅ Available |
+
+| WhatsApp provider | Driver | Status |
+|---|---|---|
+| Twilio | `twilio` | ✅ Available |
 
 ## Installation
 
@@ -54,6 +59,15 @@ NATYABIP_USERNAME=your-username
 NATYABIP_PASSWORD=your-password
 NATYABIP_FROM=EASYSERVICE
 NATYABIP_API_URL=https://api.natyabip.com/smsapiprod_web/FR/api.awp
+
+# WhatsApp (Twilio)
+WHATSAPP_DRIVER=twilio
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your-auth-token
+TWILIO_WHATSAPP_FROM=+14155238886
+# Optional: send through a Messaging Service instead of a single number
+TWILIO_MESSAGING_SERVICE_SID=
+TWILIO_STATUS_CALLBACK=
 ```
 
 ## Usage
@@ -164,6 +178,113 @@ public function routeNotificationForSms(): string
 }
 ```
 
+## WhatsApp
+
+WhatsApp is a dedicated channel, **not** part of the SMS fallback chain: outside the
+24-hour customer service window, Meta only accepts pre-approved templates, so an SMS
+body cannot simply be replayed on WhatsApp.
+
+The channel is named `whatsapp` whatever the provider: notifications never depend on Twilio.
+Providers are drivers of a `WhatsAppGateway`, exactly like SMS drivers of `SmsGateway`.
+
+### Standalone
+
+```php
+use SmsGateway\Drivers\TwilioWhatsAppDriver;
+use SmsGateway\WhatsAppGateway;
+use SmsGateway\WhatsAppMessage;
+
+$gateway = (new WhatsAppGateway())
+    ->registerDriver('twilio', new TwilioWhatsAppDriver(
+        accountSid: 'ACxxxxxxxx',
+        authToken: 'your-auth-token',
+        from: '+14155238886',
+    ))
+    ->setDefaultDriver('twilio');
+
+// Approved template with positional variables {{1}}, {{2}}...
+$gateway->send('22890001234', WhatsAppMessage::template('HXxxxxxxxx', ['Lomé', '24-09-2026']));
+
+// Free-form message with a document: only inside the 24-hour window
+$gateway->send('22890001234', WhatsAppMessage::create('Daily report')->mediaUrl('https://example.com/report.pdf'));
+```
+
+The template identifier is provider specific (a Content SID for Twilio, a template name for the
+Meta Cloud API...). `WhatsAppMessage::template($id, $variables, $language)` carries all three;
+each driver uses what its provider needs. Pin a message to a provider with `->driver('meta')`:
+a pinned message bypasses the fallback chain.
+
+The Twilio driver sends numbers as `whatsapp:+<E.164>`: spaces are stripped and `+` is added
+when missing, but the country code must already be present.
+
+Media must be reachable by Twilio through a public HTTPS URL. For a template whose header is
+a document, the URL is declared in the template itself (usually as a variable), not with `mediaUrl()`.
+
+### Laravel Notification
+
+```php
+use Illuminate\Notifications\Notification;
+use SmsGateway\Contracts\HasWhatsAppNotification;
+use SmsGateway\WhatsAppMessage;
+
+class DailyStockReport extends Notification implements HasWhatsAppNotification
+{
+    public function via($notifiable): array
+    {
+        return ['whatsapp'];
+    }
+
+    public function toWhatsApp(object $notifiable): WhatsAppMessage
+    {
+        return WhatsAppMessage::template('HXxxxxxxxx', [now()->format('d-m-Y')]);
+    }
+}
+```
+
+The notifiable provides the number through `routeNotificationForWhatsapp()`, or use an on-demand
+notification: `Notification::route('whatsapp', '22890001234')->notify(...)`.
+
+### Adding a WhatsApp provider
+
+Implement `WhatsAppDriverInterface`:
+
+```php
+use SmsGateway\Contracts\WhatsAppDriverInterface;
+use SmsGateway\WhatsAppMessage;
+
+class MetaCloudDriver implements WhatsAppDriverInterface
+{
+    public function __construct(private string $phoneNumberId, private string $accessToken)
+    {
+    }
+
+    public function send(string $to, WhatsAppMessage $message): void
+    {
+        // Call the provider API, throw CouldNotSendNotification on failure
+    }
+}
+```
+
+Then declare it in `config/sms-gateway.php`. Keys other than `class` are passed to the
+constructor as camelCase named arguments; the driver is only built when first used:
+
+```php
+'whatsapp' => [
+    'default' => env('WHATSAPP_DRIVER', 'twilio'),
+    'fallback' => [],
+    'drivers' => [
+        'twilio' => [/* ... */],
+        'meta' => [
+            'class' => App\WhatsApp\MetaCloudDriver::class,
+            'phone_number_id' => env('META_WHATSAPP_PHONE_NUMBER_ID'),
+            'access_token' => env('META_WHATSAPP_TOKEN'),
+        ],
+    ],
+],
+```
+
+Or register it in code: `app(WhatsAppGateway::class)->extend('meta', fn () => new MetaCloudDriver(...))`.
+
 ## Creating a Custom Driver
 
 Implement `SmsDriverInterface`:
@@ -196,6 +317,9 @@ The config file (`config/sms-gateway.php`) supports the following options:
 | `default` | The default SMS driver to use |
 | `fallback` | Ordered list of drivers for the fallback chain |
 | `drivers` | Per-driver configuration (credentials, API URLs, etc.) |
+| `whatsapp.default` | The default WhatsApp driver (`twilio`) |
+| `whatsapp.fallback` | Ordered WhatsApp drivers for the fallback chain |
+| `whatsapp.drivers` | Per-driver WhatsApp configuration; custom providers declare a `class` |
 
 ## Testing
 

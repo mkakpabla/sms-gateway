@@ -2,13 +2,18 @@
 
 namespace SmsGateway\Laravel;
 
+use InvalidArgumentException;
+use SmsGateway\Contracts\WhatsAppDriverInterface;
 use SmsGateway\Drivers\AfrikSmsDriver;
 use SmsGateway\Drivers\FasterMessageDriver;
 use SmsGateway\Drivers\NatyabipDriver;
+use SmsGateway\Drivers\TwilioWhatsAppDriver;
 use SmsGateway\SmsGateway;
+use SmsGateway\WhatsAppGateway;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class SmsGatewayServiceProvider extends ServiceProvider
 {
@@ -31,6 +36,22 @@ class SmsGatewayServiceProvider extends ServiceProvider
         $this->app->singleton(SmsChannel::class, function ($app) {
             return new SmsChannel($app->make(SmsGateway::class));
         });
+
+        $this->app->singleton(WhatsAppGateway::class, function ($app) {
+            $gateway = new WhatsAppGateway();
+            $config = $app['config']['sms-gateway.whatsapp'] ?? [];
+
+            $this->registerWhatsAppDrivers($gateway, $config['drivers'] ?? []);
+
+            $gateway->setDefaultDriver($config['default'] ?? 'twilio');
+            $gateway->setFallbackOrder($config['fallback'] ?? []);
+
+            return $gateway;
+        });
+
+        $this->app->singleton(WhatsAppChannel::class, function ($app) {
+            return new WhatsAppChannel($app->make(WhatsAppGateway::class));
+        });
     }
 
     public function boot(): void
@@ -44,6 +65,10 @@ class SmsGatewayServiceProvider extends ServiceProvider
         Notification::resolved(function (ChannelManager $service) {
             $service->extend('sms-gateway', function ($app) {
                 return $app->make(SmsChannel::class);
+            });
+
+            $service->extend('whatsapp', function ($app) {
+                return $app->make(WhatsAppChannel::class);
             });
         });
     }
@@ -82,5 +107,53 @@ class SmsGatewayServiceProvider extends ServiceProvider
                 apiUrl: $config['api_url'] ?? '',
             ));
         }
+    }
+
+    /**
+     * Built-in drivers are keyed by name; any other entry must name its
+     * class, whose constructor receives the entry keys as camelCase
+     * named arguments (e.g. api_token -> $apiToken).
+     *
+     * @param array<string, array<string, mixed>> $drivers
+     */
+    private function registerWhatsAppDrivers(WhatsAppGateway $gateway, array $drivers): void
+    {
+        foreach ($drivers as $name => $config) {
+            $gateway->extend($name, fn () => $this->makeWhatsAppDriver($name, $config));
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function makeWhatsAppDriver(string $name, array $config): WhatsAppDriverInterface
+    {
+        $class = $config['class'] ?? null;
+
+        if ($class === null && $name === 'twilio') {
+            return new TwilioWhatsAppDriver(
+                accountSid: $config['account_sid'] ?? '',
+                authToken: $config['auth_token'] ?? '',
+                from: $config['from'] ?? '',
+                messagingServiceSid: $config['messaging_service_sid'] ?? '',
+                statusCallback: $config['status_callback'] ?? '',
+            );
+        }
+
+        if (! is_string($class) || ! is_subclass_of($class, WhatsAppDriverInterface::class)) {
+            throw new InvalidArgumentException(
+                "WhatsApp driver [{$name}] must define a 'class' implementing " . WhatsAppDriverInterface::class . '.'
+            );
+        }
+
+        $parameters = [];
+
+        foreach ($config as $key => $value) {
+            if ($key !== 'class') {
+                $parameters[Str::camel($key)] = $value;
+            }
+        }
+
+        return $this->app->make($class, $parameters);
     }
 }
