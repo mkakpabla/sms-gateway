@@ -59,6 +59,12 @@ composer phpcbf
 2. Add corresponding tests in `tests/`
 3. Document the driver in the README
 
+## Adding a WhatsApp Driver
+
+1. Create a class in `src/Drivers/` that implements `WhatsAppDriverInterface`
+2. Map the generic `WhatsAppMessage` (template id, variables, language, media) to the provider API
+3. Add corresponding tests in `tests/` and document the driver in the README
+
 ## Conventions
 
 - Follow the existing code style (PSR-12)
